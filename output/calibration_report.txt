@@ -1,0 +1,30 @@
+NMR Spectral Calibration Report
+============================================================
+
+This report summarizes calibration capabilities:
+
+1. TSP Calibration (0.0 ppm singlet)
+   - Standard reference for aqueous samples
+   - Narrow linewidth, singlet pattern
+
+2. Alanine Calibration (1.48 ppm doublet)
+   - Useful for biological samples
+   - Doublet pattern with J=7.26 Hz
+
+3. Glucose Calibration (5.223 ppm doublet)
+   - Anomeric proton reference
+   - Alternative: use 'serum' alias
+
+4. Custom Signal Calibration
+   - Define any multiplet pattern
+   - Specify peak positions and intensities
+
+5. Batch Processing
+   - Calibrate multiple spectra at once
+   - Track calibration shifts
+
+Parameters:
+  - max_shift: Maximum allowed shift (default: 0.333 ppm)
+  - threshold: Correlation threshold (default: 0.2)
+  - roi: Region of interest for alignment
+  - lam: Baseline correction parameter (default: 1e3)

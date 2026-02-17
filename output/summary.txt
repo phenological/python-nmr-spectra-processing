@@ -1,0 +1,14 @@
+NMR Spectra Processing Summary
+============================================================
+
+Number of spectra: 10
+Number of points per spectrum: 5000
+Chemical shift range: 0.00 to 10.00 ppm
+
+Raw spectra statistics:
+  Mean intensity: 0.0368
+  Std intensity:  0.0331
+
+Processed spectra statistics:
+  Mean intensity: nan
+  Std intensity:  nan

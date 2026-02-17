@@ -1,0 +1,134 @@
+{
+  "// PROJECT SETTINGS": "===========================================================",
+  "// These settings are shared with the team and committed to git": "",
+  "// For personal/machine-specific overrides, use .claude/settings.local.json": "",
+
+  "title": "NMR Parser Development",
+  "description": "Python package for parsing NMR IVDr data from Bruker instruments",
+
+  "// Python Project Configuration": "-----------------------------------------------",
+  "python": {
+    "interpreter": ".venv/bin/python",
+    "version": "3.14.2",
+    "minVersion": "3.9",
+    "package": "nmr-parser",
+    "sourcePath": "src/nmr_parser",
+    "examplesPath": "examples",
+    "testsPath": "tests"
+  },
+
+  "// Custom Commands": "----------------------------------------------------------",
+  "// Use these with: claude run <command-name>": "",
+  "commands": {
+    "test": {
+      "command": ".venv/bin/pytest tests --cov=nmr_parser --cov-report=term-missing",
+      "description": "Run all tests with coverage"
+    },
+    "test-verbose": {
+      "command": ".venv/bin/pytest tests -v --cov=nmr_parser",
+      "description": "Run tests with verbose output"
+    },
+    "format": {
+      "command": ".venv/bin/black src/ examples/ tests/",
+      "description": "Format code with Black"
+    },
+    "lint": {
+      "command": ".venv/bin/ruff check src/",
+      "description": "Lint code with Ruff"
+    },
+    "typecheck": {
+      "command": ".venv/bin/mypy src/",
+      "description": "Type check with Mypy"
+    },
+    "quality": {
+      "command": ".venv/bin/black src/ && .venv/bin/ruff check src/ && .venv/bin/mypy src/ && .venv/bin/pytest",
+      "description": "Run all quality checks (format, lint, typecheck, test)"
+    },
+    "install-dev": {
+      "command": ".venv/bin/pip install -e '.[dev]'",
+      "description": "Install package in development mode with dev dependencies"
+    },
+    "example-parse": {
+      "command": ".venv/bin/python examples/parse_nmr_example.py data/ -v info",
+      "description": "Run parse_nmr example with test data"
+    },
+    "example-read": {
+      "command": ".venv/bin/python examples/read_experiment_example.py",
+      "description": "Run read_experiment example"
+    },
+    "docs-build": {
+      "command": ".venv/bin/sphinx-build -M html docs docs/_build",
+      "description": "Build HTML documentation"
+    },
+    "docs-clean": {
+      "command": ".venv/bin/sphinx-build -M clean docs docs/_build",
+      "description": "Clean documentation build"
+    }
+  },
+
+  "// File Patterns": "-----------------------------------------------------------",
+  "files": {
+    "include": [
+      "src/**/*.py",
+      "examples/**/*.py",
+      "tests/**/*.py",
+      "docs/**/*.rst",
+      "docs/**/*.md",
+      "*.md",
+      "*.toml",
+      "*.txt"
+    ],
+    "exclude": [
+      ".venv/**",
+      "**/__pycache__/**",
+      "**/*.pyc",
+      "**/.pytest_cache/**",
+      "**/.mypy_cache/**",
+      "**/.ruff_cache/**",
+      "**/htmlcov/**",
+      "docs/_build/**",
+      "**/*.egg-info/**"
+    ]
+  },
+
+  "// Path Templates": "-----------------------------------------------------------",
+  "// These are TEMPLATES with placeholders": "",
+  "// Override actual paths in .claude/settings.local.json (not committed)": "",
+  "paths": {
+    "description": "Common data directories and repositories - update in .claude/settings.local.json",
+    "data": {
+      "test": "./tests/data/"
+    },
+    "output": {
+      "results": "./output/"
+    },
+    "examples_data": {
+      "test_sample": "./tests/data/HB-COVID0001/10"
+    }
+  },
+
+  "// Command Shortcuts": "---------------------------------------------------------",
+  "shortcuts": {
+    "run_python": ".venv/bin/python",
+    "run_example": ".venv/bin/python examples/",
+    "test_single": ".venv/bin/pytest tests/",
+    "python_path": "PYTHONPATH=src"
+  },
+
+  "// Project Notes": "-------------------------------------------------------------",
+  "notes": {
+    "architecture": "src/nmr_parser/ contains core/, xml_parsers/, processing/, and reference/ modules",
+    "testing": "Use pytest with coverage, target is 100% for critical parsers",
+    "formatting": "Black with 100-char line length, Ruff for linting",
+    "examples": "All examples in examples/ support --help, -o for CSV export, --show-all",
+    "data_location": "Test data expected in data/ directory (not in repo)",
+    "main_functions": "read_experiment(), parse_nmr(), read_spectrum(), read_params(), read_quant(), read_lipo()"
+  },
+
+  "// Common Command Patterns": "----------------------------------------------------",
+  "commonPatterns": {
+    "runExample": ".venv/bin/python examples/{example_name}.py [args]",
+    "testModule": ".venv/bin/pytest tests/test_{module}.py -v",
+    "debugScript": ".venv/bin/python -m pdb examples/{script}.py"
+  }
+}

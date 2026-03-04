@@ -12,15 +12,21 @@ from nmr_spectra_processing.version import __version__
 from nmr_spectra_processing.core import (
     align_spectra,
     baseline_correction,
+    broaden,
     calibrate_signal,
     calibrate_spectra,
     estimate_noise,
+    measure_fwhm,
+    nmr_to_voigt,
     normalize,
     pad_series,
     phase_correction,
     pqn,
+    ref_deconv,
     shift_series,
     shift_spectra,
+    spectrum_from_peaks,
+    voigt,
 )
 
 # Utility functions
@@ -44,15 +50,21 @@ __all__ = [
     # Core processing
     "align_spectra",
     "baseline_correction",
+    "broaden",
     "calibrate_signal",
     "calibrate_spectra",
     "estimate_noise",
+    "measure_fwhm",
+    "nmr_to_voigt",
     "normalize",
     "pad_series",
     "phase_correction",
     "pqn",
+    "ref_deconv",
     "shift_series",
     "shift_spectra",
+    "spectrum_from_peaks",
+    "voigt",
     # Utilities
     "crop_region",
     "get_indices",

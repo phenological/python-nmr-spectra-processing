@@ -32,34 +32,19 @@ Net filter:  h(t) = exp(+π·(LW_obs - LW_target - lb)·t) · w(t)
 lb (same units as x) adds a small extra Lorentzian broadening for robustness.
 """
 
-from typing import List, Sequence
+from collections.abc import Sequence
+
 import numpy as np
-from scipy.special import wofz
+
+from nmr_spectra_processing.core.lineshapes import voigt
 
 _SQRT2LN2 = np.sqrt(2.0 * np.log(2.0))
 
 
-# ── Voigt profile ─────────────────────────────────────────────────────────────
-
-def voigt(x: np.ndarray, amplitude: float, center: float,
-          sigma: float, gamma: float) -> np.ndarray:
-    """
-    Area-normalised Voigt profile.
-
-    Parameters
-    ----------
-    x         : frequency axis
-    amplitude : peak area (integral)
-    center    : peak center
-    sigma     : Gaussian width parameter (sigma = FWHM_G / (2√(2 ln 2)))
-    gamma     : Lorentzian half-width at half-maximum (= FWHM_L / 2)
-
-    Returns
-    -------
-    Voigt profile evaluated at x
-    """
-    z = ((x - center) + 1j * gamma) / (sigma * np.sqrt(2))
-    return amplitude * np.real(wofz(z)) / (sigma * np.sqrt(2 * np.pi))
+# ``voigt`` (area-normalised) and ``measure_fwhm`` now live in
+# :mod:`nmr_spectra_processing.core.lineshapes`. ``voigt`` is imported above as a
+# backward-compatible alias of ``voigt_area``; the peak-construction helpers
+# below (nmr_to_voigt, spectrum_from_peaks) build on it.
 
 
 def nmr_to_voigt(cs: float, area: float, fwhm_L: float,
@@ -231,46 +216,4 @@ def broaden(x: np.ndarray, spectrum: np.ndarray,
     return np.fft.irfft(S * K, n=n) / dx
 
 
-# ── FWHM measurement ──────────────────────────────────────────────────────────
-
-def measure_fwhm(x: np.ndarray, y: np.ndarray, x_center: float) -> float:
-    """
-    Measure the full-width at half-maximum of a peak by linear interpolation.
-
-    Parameters
-    ----------
-    x        : frequency axis
-    y        : spectrum intensities
-    x_center : approximate peak center (used to find the peak maximum)
-
-    Returns
-    -------
-    FWHM in the same units as x, or nan if the half-maximum crossings
-    could not be found (peak too close to the edge or too broad).
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from nmr_spectra_processing import measure_fwhm, spectrum_from_peaks
-    >>> x = np.linspace(-5, 5, 2048)
-    >>> peaks = [[0.0, 1.0, 0.5, 0.0]]
-    >>> y = spectrum_from_peaks(x, peaks)
-    >>> fwhm = measure_fwhm(x, y, x_center=0.0)
-    """
-    dx = x[1] - x[0]
-    idx = int(np.argmin(np.abs(x - x_center)))
-    half = y[idx] / 2.0
-    left = right = None
-
-    for i in range(idx, 0, -1):
-        if y[i - 1] <= half:
-            frac = (y[i] - half) / max(y[i] - y[i - 1], 1e-30)
-            left = (i - frac) * dx + x[0]
-            break
-    for i in range(idx, len(x) - 1):
-        if y[i + 1] <= half:
-            frac = (y[i] - half) / max(y[i] - y[i + 1], 1e-30)
-            right = (i + frac) * dx + x[0]
-            break
-
-    return (right - left) if (left is not None and right is not None) else float('nan')
+# ``measure_fwhm`` moved to nmr_spectra_processing.core.lineshapes.

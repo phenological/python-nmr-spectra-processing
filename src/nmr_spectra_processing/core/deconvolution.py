@@ -88,6 +88,22 @@ def spectrum_from_peaks(x: np.ndarray,
     return y
 
 
+# ── Shared helpers ────────────────────────────────────────────────────────────
+
+def _make_taper(n: int, frac: float = 0.15) -> np.ndarray:
+    """Cosine edge-taper window of length ``n``.
+
+    Tapers the outer ``frac`` fraction on each side to zero, suppressing the
+    spectral leakage caused by non-zero Lorentzian tails at the boundaries.
+    """
+    taper_n = max(1, int(n * frac))
+    taper = 0.5 * (1.0 - np.cos(np.pi * np.arange(taper_n) / taper_n))
+    win = np.ones(n)
+    win[:taper_n] = taper
+    win[-taper_n:] = taper[::-1]
+    return win
+
+
 # ── Reference deconvolution ───────────────────────────────────────────────────
 
 def ref_deconv(x: np.ndarray, spectrum: np.ndarray,
@@ -141,15 +157,9 @@ def ref_deconv(x: np.ndarray, spectrum: np.ndarray,
     dx = x[1] - x[0]
     n = len(x)
 
-    # Edge taper: Lorentzian tails are non-zero at x = ±x_max, causing
-    # spectral leakage that gets amplified by the deconvolution filter.
-    # Apply a cosine taper over the outer 15% on each side to suppress this.
-    taper_n = max(1, int(n * 0.15))
-    taper = 0.5 * (1.0 - np.cos(np.pi * np.arange(taper_n) / taper_n))
-    win = np.ones(n)
-    win[:taper_n] = taper
-    win[-taper_n:] = taper[::-1]
-    spec_tapered = spectrum * win
+    # Edge taper suppresses leakage from non-zero Lorentzian tails at the
+    # boundaries, which the deconvolution filter would otherwise amplify.
+    spec_tapered = spectrum * _make_taper(n)
 
     # Zero-pad to avoid remaining circular-convolution wrap-around.
     n_pad = n * 4
@@ -171,6 +181,76 @@ def ref_deconv(x: np.ndarray, spectrum: np.ndarray,
 
     # Deconvolution ratio + lb apodisation
     ratio = np.exp(np.pi * (fwhm_L_obs - fwhm_L_target - lb) * t)
+
+    s_out = np.fft.irfft(S * ratio * weight, n=n_pad) / dx
+    return s_out[:n]
+
+
+# ── Voigt reference deconvolution ─────────────────────────────────────────────
+
+def ref_deconv_voigt(x: np.ndarray, spectrum: np.ndarray,
+                     sigma_obs: float, gamma_obs: float,
+                     sigma_target: float = None, gamma_target: float = None,
+                     lb: float = 0.0) -> np.ndarray:
+    """
+    Reshape a full Voigt lineshape by reference deconvolution.
+
+    Deconvolves the observed Voigt lineshape ``(sigma_obs, gamma_obs)`` and
+    reconvolves with a target Voigt ``(sigma_target, gamma_target)``.  When the
+    target equals the observed shape the net effect is near-unity, so this can
+    be used to clean non-Voigt distortions without changing the linewidth.
+
+    Unlike :func:`ref_deconv` (which reshapes only the Lorentzian component
+    from a scalar FWHM), this operates on the full Voigt pseudo-FID::
+
+        FID(t) = exp(-pi * 2 gamma * t) * exp(-2 pi^2 sigma^2 t^2)
+
+    The Wiener weight is estimated from the actual data pseudo-FID, so the
+    noise-dominated tail is suppressed adaptively.
+
+    Parameters
+    ----------
+    x            : uniform frequency axis
+    spectrum     : observed spectrum
+    sigma_obs    : Gaussian width of the observed lineshape
+    gamma_obs    : Lorentzian half-width of the observed lineshape
+    sigma_target : Gaussian width of the target Voigt (default: sigma_obs)
+    gamma_target : Lorentzian half-width of the target Voigt (default: gamma_obs)
+    lb           : extra Lorentzian broadening added to the output
+                   (regularisation), same units as x
+
+    Returns
+    -------
+    s_out : spectrum with the reshaped Voigt lineshape, same length as x
+    """
+    if sigma_target is None:
+        sigma_target = sigma_obs
+    if gamma_target is None:
+        gamma_target = gamma_obs
+
+    dx = x[1] - x[0]
+    n = len(x)
+    n_pad = n * 4
+    t = np.fft.rfftfreq(n_pad, d=dx)
+
+    S = np.fft.rfft(spectrum * _make_taper(n), n=n_pad) * dx
+
+    def _voigt_fid(sigma, gamma):
+        return (np.exp(-np.pi * 2 * gamma * t)
+                * np.exp(-2 * np.pi**2 * sigma**2 * t**2))
+
+    fid_obs = _voigt_fid(sigma_obs, gamma_obs)
+    fid_target = _voigt_fid(sigma_target, gamma_target)
+
+    # Wiener weight from the observed data pseudo-FID
+    area = np.abs(S[0])
+    fft_noise = np.std(np.abs(S[n_pad // 4:]))
+    snr = area / max(fft_noise, 1e-6 * area)
+    snr_t = snr * fid_obs
+    weight = snr_t**2 / (1.0 + snr_t**2)
+
+    lb_apo = np.exp(-np.pi * lb * t)
+    ratio = np.where(fid_obs > 1e-30, fid_target / fid_obs, 0.0) * lb_apo
 
     s_out = np.fft.irfft(S * ratio * weight, n=n_pad) / dx
     return s_out[:n]

@@ -6,16 +6,16 @@ Provides tools for alignment, calibration, normalization, baseline correction,
 and phase correction of NMR spectra.
 """
 
-from nmr_spectra_processing.version import __version__
-
 # Core processing functions
 from nmr_spectra_processing.core import (
     align_spectra,
+    apply_phase_angles,
     area_from_height,
     baseline_correction,
     broaden,
     calibrate_signal,
     calibrate_spectra,
+    compute_phase_angles,
     estimate_noise,
     height_from_area,
     measure_fwhm,
@@ -27,6 +27,8 @@ from nmr_spectra_processing.core import (
     pqn,
     pseudo_voigt_fwhm,
     ref_deconv,
+    ref_deconv_from_peak,
+    ref_deconv_voigt,
     shift_series,
     shift_spectra,
     spectrum_from_peaks,
@@ -37,31 +39,34 @@ from nmr_spectra_processing.core import (
     voigt_with_satellites,
 )
 
+# Reference signals
+from nmr_spectra_processing.reference import (
+    NMRPeak,
+    NMRSignal,
+    create_custom_signal,
+    get_reference_signal,
+)
+
 # Utility functions
 from nmr_spectra_processing.utils import (
     crop_region,
     get_indices,
     get_top_spectra,
 )
-
-# Reference signals
-from nmr_spectra_processing.reference import (
-    NMRPeak,
-    NMRSignal,
-    get_reference_signal,
-    create_custom_signal,
-)
+from nmr_spectra_processing.version import __version__
 
 __all__ = [
     # Version
     "__version__",
     # Core processing
     "align_spectra",
+    "apply_phase_angles",
     "area_from_height",
     "baseline_correction",
     "broaden",
     "calibrate_signal",
     "calibrate_spectra",
+    "compute_phase_angles",
     "estimate_noise",
     "height_from_area",
     "measure_fwhm",
@@ -73,6 +78,8 @@ __all__ = [
     "pqn",
     "pseudo_voigt_fwhm",
     "ref_deconv",
+    "ref_deconv_from_peak",
+    "ref_deconv_voigt",
     "shift_series",
     "shift_spectra",
     "spectrum_from_peaks",
